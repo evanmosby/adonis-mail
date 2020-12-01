@@ -164,7 +164,6 @@ class MailSender {
    * Verify connection to sender.
    *
    * @method verify
-   * @async
    *
    * @return {boolean}
    *
@@ -182,7 +181,7 @@ class MailSender {
    *
    * @throw {Error} If promise fails.
    */
-  async verify() {
+  verify() {
     return this._driverInstance.transporter.verify();
   }
 }
