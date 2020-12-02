@@ -1,4 +1,4 @@
-'use strict'
+"use strict";
 
 /*
  * adonis-mail
@@ -7,19 +7,19 @@
  *
  * For the full copyright and license information, please view the LICENSE
  * file that was distributed with this source code.
-*/
+ */
 
-const GE = require('@adonisjs/generic-exceptions')
-const MailManager = require('./Manager')
-const proxyMethods = ['send', 'raw']
+const GE = require("@adonisjs/generic-exceptions");
+const MailManager = require("./Manager");
+const proxyMethods = ["send", "raw"];
 
 const proxyHandler = {
-  get (target, name) {
+  get(target, name) {
     /**
      * if node is inspecting then stick to target properties
      */
-    if (typeof (name) === 'symbol' || name === 'inspect') {
-      return target[name]
+    if (typeof name === "symbol" || name === "inspect") {
+      return target[name];
     }
 
     /**
@@ -27,12 +27,14 @@ const proxyHandler = {
      * the actual methods
      */
     if (target._fake && target._fake[name] !== undefined) {
-      return typeof (target._fake[name]) === 'function' ? target._fake[name].bind(target._fake) : target._fake[name]
+      return typeof target._fake[name] === "function"
+        ? target._fake[name].bind(target._fake)
+        : target._fake[name];
     }
 
-    return target[name]
-  }
-}
+    return target[name];
+  },
+};
 
 /**
  * The mail class is used to grab an instance of
@@ -45,13 +47,13 @@ const proxyHandler = {
  * @constructor
  */
 class Mail {
-  constructor (Config, View) {
-    this.Config = Config
-    this.View = View
-    this._sendersPool = {}
-    this._fake = null
+  constructor(Config, View) {
+    this.Config = Config;
+    this.View = View;
+    this._sendersPool = {};
+    this._fake = null;
 
-    return new Proxy(this, proxyHandler)
+    return new Proxy(this, proxyHandler);
   }
 
   /**
@@ -64,33 +66,35 @@ class Mail {
    *
    * @return {Object}
    */
-  connection (name) {
-    name = name || this.Config.get('mail.connection')
+  connection(name) {
+    name = name || this.Config.get("mail.connection");
 
     /**
      * Returns the cache connection if defined
      */
     if (this._sendersPool[name]) {
-      return this._sendersPool[name]
+      return this._sendersPool[name];
     }
 
     /**
      * Cannot get default connection
      */
     if (!name) {
-      throw GE.InvalidArgumentException.invalidParameter('Make sure to define connection inside config/mail.js file')
+      throw GE.InvalidArgumentException.invalidParameter(
+        "Make sure to define connection inside config/mail.js file"
+      );
     }
 
     /**
      * Get connection config
      */
-    const connectionConfig = this.Config.get(`mail.${name}`)
+    const connectionConfig = this.Config.get(`mail.${name}`);
 
     /**
      * Cannot get config for the defined connection
      */
     if (!connectionConfig) {
-      throw GE.RuntimeException.missingConfig(name, 'config/mail.js')
+      throw GE.RuntimeException.missingConfig(name, "config/mail.js");
     }
 
     /**
@@ -98,11 +102,54 @@ class Mail {
      * on it
      */
     if (!connectionConfig.driver) {
-      throw GE.RuntimeException.missingConfig(`${name}.driver`, 'config/mail.js')
+      throw GE.RuntimeException.missingConfig(
+        `${name}.driver`,
+        "config/mail.js"
+      );
     }
 
-    this._sendersPool[name] = MailManager.driver(connectionConfig.driver, connectionConfig, this.View)
-    return this._sendersPool[name]
+    this._sendersPool[name] = MailManager.driver(
+      connectionConfig.driver,
+      connectionConfig,
+      this.View
+    );
+    return this._sendersPool[name];
+  }
+
+  /**
+   * Removes an instance of a mail connection from the
+   * Mail class senderPool.
+   *
+   * @method removeConnection
+   *
+   * @param  {String}   name
+   *
+   * @return {void}
+   */
+  removeConnection(name) {
+    name = name || this.Config.get("mail.connection");
+
+    if (this._sendersPool[name]) {
+      delete this._sendersPool[name];
+    }
+  }
+
+  /**
+   * Removes an instance of a mail connection from the
+   * Mail class senderPool.
+   *
+   * @method removeConnection
+   *
+   * @param  {String}   name
+   *
+   * @return {void}
+   */
+  removeConnection(name) {
+    name = name || this.Config.get("mail.connection");
+
+    if (this._sendersPool[name]) {
+      delete this._sendersPool[name];
+    }
   }
 
   /**
@@ -113,8 +160,8 @@ class Mail {
    *
    * @return {void}
    */
-  fake () {
-    this._fake = new (require('./Fake'))(this.Config, this.View)
+  fake() {
+    this._fake = new (require("./Fake"))(this.Config, this.View);
   }
 
   /**
@@ -124,15 +171,15 @@ class Mail {
    *
    * @return {void}
    */
-  restore () {
-    this._fake = null
+  restore() {
+    this._fake = null;
   }
 }
 
 proxyMethods.forEach((method) => {
   Mail.prototype[method] = function (...params) {
-    return this.connection()[method](...params)
-  }
-})
+    return this.connection()[method](...params);
+  };
+});
 
-module.exports = Mail
+module.exports = Mail;
